@@ -4,15 +4,12 @@ const mysql = require("mysql");
 require("dotenv").config();
 const bcrypt = require("bcryptjs");
 
+//SQL connection
 const db = mysql.createPool({
   host: "sql658.main-hosting.eu",
   user: "u486424484_vynilsonline",
   password: "NitroS2021!",
-  database: "u486424484_vynils"
-  // host: "localhost",
-  // user: "root",
-  // password: "",
-  // database: "vinylsonline",
+  database: "u486424484_vynils",
 });
 
 db.getConnection(async (err) => {
@@ -23,38 +20,45 @@ db.getConnection(async (err) => {
   }
 });
 
+//login route
 router.post("/", async (req, res) => {
   let { email, password } = req.body;
 
   if (email && password) {
-    let userLogin = `SELECT * FROM users WHERE email = "${email}"`;
+    let userLogin = `SELECT * FROM users WHERE email = ?`;
 
-    db.query(userLogin, async function (err, rows) {
+    db.query(userLogin, [email], async function (err, rows) {
       if (err) console.log(err);
-      if (rows.length > 0) {
-        //if user exists checks password
-        const isMatch = bcrypt.compare(password, rows[0].password);
+      //checks against sql injection. rejects 1=1
+      if (typeof password != "string") {
+        return res.status(400).json({ msg: "Invalid credentials." });
+      } else {
+        if (rows.length > 0) {
+          //if user exists checks password
+          const isMatch = bcrypt.compare(password, rows[0].password);
 
-        if (!isMatch) {
-          return res.status(400).json({ msg: "Invalid credentials." });
-        } else{
-          res.json({
+          if (!isMatch) {
+            return res.status(400).json({ msg: "Invalid credentials." });
+          } else {
+            res.json({
               id: rows[0].id,
-              name: rows[0].name
-          })
+              name: rows[0].name,
+            });
+          }
         }
       }
     });
   }
 });
 
+//registering a new user route
 router.post("/register", async (req, res) => {
   let { name, surname, password, email } = req.body;
 
-  let checkExistingUser = `SELECT * FROM users WHERE email = "${email}"`;
+  let checkExistingUser = `SELECT * FROM users WHERE email = ?`;
 
   //checks the email doesn't exist on the db
-  db.query(checkExistingUser, async function (err, rows) {
+  db.query(checkExistingUser, [email], async function (err, rows) {
     if (err) {
       throw err;
     } else if (rows.length === 1) {

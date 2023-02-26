@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+require("dotenv").config();
+
 
 //SQL Connection
 const mysql = require("mysql");
@@ -13,7 +15,9 @@ const db = mysql.createPool({
 db.getConnection(async (err) => {
     if (err) {
       console.log(err);
-    } 
+    } else{
+        console.log("--Connected to DB--")
+    }
 });
 
 //get last 12 vinyls on the db

@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+require("dotenv").config();
+
 
 //SQL Connection
 const mysql = require("mysql");
@@ -7,7 +9,7 @@ const db = mysql.createPool({
     host: "sql658.main-hosting.eu",
     user: "u486424484_vynilsonline",
     password: "NitroS2021!",
-    database: "u486424484_vynils"
+    database: "u486424484_vynils"  
 });
 
 db.getConnection(async (err) => {
@@ -21,9 +23,9 @@ db.getConnection(async (err) => {
 //gets the user passed on the query parameters after login
 router.get("/:userId", async (req, res) => {
 
-    let userName = `SELECT * FROM users WHERE id = "${req.params.userId}"`;
+    let userName = `SELECT * FROM users WHERE id = ?`;
 
-    db.query(userName, async function (err, rows){
+    db.query(userName, [req.params.userId], async function (err, rows){
         if (err) throw err
         else{
             res.json({
